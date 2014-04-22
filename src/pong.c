@@ -8,6 +8,8 @@
 #include "pebble.h"
 #include "ball.h"
 #include "court.h"
+#include "player.h"
+
 #include "constants.h"
 
 bool initialWipeFlag;
@@ -41,8 +43,19 @@ void playersLayer_update_callback(Layer *me, GContext* ctx) {
       initialWipeFlag = false;
   }
   
+  
   draw_ball(ctx);
   tick_ball();
+  
+  draw_player1(ctx);
+  tick_player1();
+  
+  draw_player2(ctx);
+  tick_player2();
+  /*
+  draw_player(ctx, player2);
+  tick_player(player2);
+  */
   
   // Reset timer
   //timerHandle = app_timer_send_event(ctx, time_duration, 1);
@@ -125,6 +138,7 @@ void init(void) {
   update_time_text();
   
   init_ball();
+  init_players();
 
 }
 
