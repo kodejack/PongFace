@@ -1,25 +1,25 @@
 {
-    "companyName": "gordon@screenmedia.co.uk",
+    "versionLabel": "1.0",
+    "appKeys": {},
     "resources": {
         "media": [
             {
+                "type": "png",
                 "file": "images/menu_icon_pong.png",
                 "name": "IMAGE_MENU_ICON",
-                "type": "png",
                 "menuIcon": true
             }
         ]
     },
-    "shortName": "PongFace",
-    "versionCode": 1,
     "longName": "PongFace",
-    "appKeys": {},
+    "versionCode": 1,
     "uuid": "36133411-0c75-4a1f-8110-84a9b3536ab5",
     "capabilities": [
         ""
     ],
-    "versionLabel": "1.0",
     "watchapp": {
         "watchface": false
-    }
+    },
+    "shortName": "PongFace",
+    "companyName": "gordon@screenmedia.co.uk"
 }

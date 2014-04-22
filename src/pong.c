@@ -1,6 +1,6 @@
 /*
 
-   Tic Tock Toe watch for Pebble
+   Pong watch for Pebble
 
  */
 
@@ -29,6 +29,16 @@
 #define COLOR_FOREGROUND GColorWhite
 #define COLOR_BACKGROUND GColorBlack
 #endif
+  
+// Globals
+#define BALL_SIZE 6
+#define MIN_Y 5
+#define MAX_Y 142
+#define MIN_X (BALL_SIZE>>1)
+#define MAX_X (144 - (BALL_SIZE>>1))
+
+int pos_x, pos_y, delta_x, delta_y, old_x, old_y;
+bool initialWipeFlag;
 
 // App-specific data
 Window *window; // All apps must have at least one window
@@ -45,21 +55,20 @@ void boardLayer_update_callback(Layer *me, GContext* ctx) {
 
   // Draw playing board grid
   // TODO: Change this to allow for a nicely centred circle in each square.
-  int topY = 5;
-  int botY = 142;
+
   GRect rect = layer_get_bounds(me);
   int centerX = rect.size.w>>1;
   int centerY = rect.size.h>>1;
 
   // Vertical lines  dotted line
-  for (int y = topY; y <= botY-5; y+=10)
+  for (int y = MIN_Y; y <= MAX_Y-5; y+=10)
   {
     graphics_draw_line(ctx, GPoint(centerX, y), GPoint(centerX, y+5));
   }
   
   // Horizontal lines
-  graphics_draw_line(ctx, GPoint(0, topY), GPoint(144, topY));
-  graphics_draw_line(ctx, GPoint(0, botY), GPoint(144, botY));
+  graphics_draw_line(ctx, GPoint((MIN_X), MIN_Y), GPoint((MAX_X), MIN_Y));
+  graphics_draw_line(ctx, GPoint((MIN_X), MAX_Y), GPoint((MAX_X), MAX_Y));
 }
 
 
@@ -106,26 +115,6 @@ GPoint getCellCenter(unsigned int cellOffset) {
 }
 
 
-//
-// Board location offsets for the move sequence arrays:
-//
-//  0 | 1 | 2
-//  3 | 4 | 5
-//  6 | 7 | 8
-//
-
-#define DRAW_WIN_LINE 10
-#define DRAW_BLANK 11
-
-// Sequences of moves needed to get the specified game result
-// Each array position holds the location offset of the active player's move.
-// Currently "Player 1" is "O" and "Player 2" is "X"
-// TODO: Add more variations
-// TODO: Swap who starts each time (or whatever the rule is).
-const unsigned short SEQUENCE_FIRST_PLAYER_WINS[] = {DRAW_BLANK, 0, 8, 2, 1, 6, 3, 4, DRAW_WIN_LINE, DRAW_BLANK};
-const unsigned short SEQUENCE_SECOND_PLAYER_WINS[] = {2, 8, 5, 6, 7, 0, 4, 3, DRAW_WIN_LINE, DRAW_BLANK};
-const unsigned short SEQUENCE_NEITHER_PLAYER_WINS[] = {4, 2, 7, 1, 0, 8, 5, 3, 6, DRAW_BLANK};
-
 typedef struct {
   const unsigned short *SEQUENCE;
   unsigned short sequenceOffset;
@@ -136,113 +125,134 @@ void retrieveCurrentGameState(DemoGameState *gameState) {
 
   time_t now = time(NULL);
   struct tm *currentTime = localtime(&now);
+  
 
+  
+  
+/*
   // The current location in the move sequence is synced to the current time
   // so that games end when the clock digits change.
   gameState->sequenceOffset = (currentTime->tm_sec + 8) % 10;
 
-  // The game sequence we are displaying depends on which digit (i.e. hours or minutes)
-  // will change next.
-  if ((currentTime->tm_sec >= 52) || (currentTime->tm_sec <= 1)) {
-
-    // Because sequences run over the start of minutes we need to check both
-    // the current minute and the current second to know which is the correct
-    // sequence to display.
-    if (((currentTime->tm_min == 59) && (currentTime->tm_sec >= 52))
-	|| ((currentTime->tm_min == 0) && (currentTime->tm_sec <= 1)) ) {
-
-      // Because it will be a new hour at the end of this time period.
-      gameState->SEQUENCE = SEQUENCE_FIRST_PLAYER_WINS;
-
-    } else {
-
-      // Because it will be a new minute at the end of this time period.
-      gameState->SEQUENCE = SEQUENCE_SECOND_PLAYER_WINS;
-
-    }
-
-  } else {
-
-    // Neither the minute nor hour digit will change at the end of this time period.
-    gameState->SEQUENCE = SEQUENCE_NEITHER_PLAYER_WINS;
-
-  }
-
+*/
 }
-
-
-void drawWinLine(GContext* ctx, GPoint leftmostPoint, GPoint rightmostPoint) {
-
-  // Note: The point names are there for a reason. :)
-  // TODO: Make it work either way.
-
-  // Make the ends of the line extend past the edges of the board.
-
-  if (leftmostPoint.x != rightmostPoint.x) {
-    // It's not a vertical line so adjust the X axis.
-    leftmostPoint.x -= 18;
-    rightmostPoint.x += 18;
-  }
-
-  if (leftmostPoint.y != rightmostPoint.y) {
-    // It's not a horizontal line so adjust the Y axis.
-    if (leftmostPoint.y < rightmostPoint.y) {
-      leftmostPoint.y -= 18;
-      rightmostPoint.y += 18;
-    } else {
-      leftmostPoint.y += 18;
-      rightmostPoint.y -= 18;
-    }
-  }
-
-  graphics_draw_line_wide(ctx, leftmostPoint, rightmostPoint);
-}
-
 
 void drawGameState(GContext* ctx, const DemoGameState gameState) {
 
-  // Note: Because the layer is blanked before we're called, we also need to
-  //       redraw all the player moves preceeding the current move each time
-  //       we're called.
-
-  // If we've reached the final part of the sequence don't draw anything.
-  if (gameState.SEQUENCE[gameState.sequenceOffset] == DRAW_BLANK) {
-    return;
-  }
-
-  unsigned short activePlayer = 0;
-
-  for (unsigned short currentOffset = 0; currentOffset <= gameState.sequenceOffset; currentOffset++) {
-
-    switch (gameState.SEQUENCE[currentOffset]) {
-
-      case DRAW_BLANK:
-	// Do nothing as a DRAW_BLANK value in a non terminal position
-	// is just padding so the sequence has the correct length.
-	break;
-
-
-      case DRAW_WIN_LINE:
-	// TODO: Don't hard code this--calculate the winner from the board.
-	if (gameState.SEQUENCE == SEQUENCE_SECOND_PLAYER_WINS) {
-	  drawWinLine(ctx, getCellCenter(0), getCellCenter(6));
-	} else { // Assumes first player wins
-	  drawWinLine(ctx, getCellCenter(6), getCellCenter(2));
-	}
-	break;
-
-
-      default:
-	// The value is a cell location offset.
-	// Draw the marker for the current player who is active in this turn.
-	(activePlayer ? drawCrossPlayer : drawCirclePlayer)(ctx, getCellCenter(gameState.SEQUENCE[currentOffset]));
-
-	activePlayer = (activePlayer + 1) % 2;
-	break;
+    if (initialWipeFlag)
+    {
+        // Erase screen on first run
+        
+        graphics_context_set_fill_color(ctx, GColorBlack);
+        GRect rect = GRect(0,0,144,168);
+        graphics_fill_rect(ctx, rect, 0, GCornerNone);
+        initialWipeFlag = false;
     }
-  }
+    
+    // Wipe old circle
+    
+    GPoint point = GPoint(old_x, old_y);
+    graphics_context_set_fill_color(ctx, GColorBlack);
+    graphics_fill_circle(ctx, point, BALL_SIZE);
+    
+    // Draw new circle
+    
+    point = GPoint(pos_x, pos_y);
+    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_fill_circle(ctx, point, BALL_SIZE);
+
 }
 
+void pulse_on_collision(bool pulse)
+{
+  if(pulse)
+    vibes_short_pulse();
+}
+
+void handle_timer(GContext* ctx, uint32_t cookie)
+{
+    bool usePulse = false;
+  
+    old_x = pos_x;
+    old_y = pos_y;
+    
+    pos_x = pos_x + delta_x;
+    pos_y = pos_y + delta_y;
+    
+    if (pos_x > MAX_X)
+    {
+        pos_x = MAX_X -BALL_SIZE;
+        delta_x = -BALL_SIZE;
+        pulse_on_collision(usePulse);
+    }
+    
+    if (pos_x < MIN_X)
+    {
+        pos_x = MIN_X + BALL_SIZE;
+        delta_x = BALL_SIZE;
+        pulse_on_collision(usePulse);
+    }
+    
+    if (pos_y > MAX_Y)
+    {
+        pos_y = MAX_Y - BALL_SIZE;
+        delta_y = -BALL_SIZE;
+        pulse_on_collision(usePulse);
+    }
+    
+    if (pos_y < MIN_Y)
+    {
+        pos_y = MIN_Y + BALL_SIZE;
+        delta_y = BALL_SIZE;
+        pulse_on_collision(usePulse);
+    }
+    
+    // Reset timer
+    
+    //timerHandle = app_timer_send_event(ctx, time_duration, 1);
+    
+   // Tell layer to redraw
+
+    layer_mark_dirty(playersLayer);
+}
+
+
+
+
+/*
+void handle_tick(AppContextRef ctxt, PebbleTickEvent *event)
+{
+    pos_x = pos_x + delta_x;
+    pos_y = pos_y + delta_y;
+    
+    if (pos_x > 140)
+    {
+        pos_x = 132;
+        delta_x = -8;
+    }
+    
+    if (pos_x < 4)
+    {
+        pos_x = 12;
+        delta_x = 8;
+    }
+    
+    if (pos_y > 162)
+    {
+        pos_y = 154;
+        delta_y = -8;
+    }
+    
+    if (pos_y < 4)
+    {
+        pos_y = 12;
+        delta_y = 8;
+    }
+    
+    Layer *root = window_get_root_layer(window);
+    layer_mark_dirty(root);
+}
+*/
 
 // This is called whenever the `playersLayer` layer needs to be redrawn.
 // TODO: Can we get this called without the layer being cleared?
@@ -257,6 +267,10 @@ void playersLayer_update_callback(Layer *me, GContext* ctx) {
   retrieveCurrentGameState(&gameState);
 
   drawGameState(ctx, gameState);
+  
+  handle_timer(ctx, 0);
+  
+  
 
 }
 
@@ -333,6 +347,18 @@ void init(void) {
   tick_timer_service_subscribe(SECOND_UNIT, handle_second_tick);
 
   update_time_text();
+  
+  srand(time(NULL));
+    
+  pos_x = 68 + rand() % 8;
+  pos_y = 80 + rand() % 8;
+    
+  delta_x = BALL_SIZE;
+  delta_y = BALL_SIZE;
+    
+  old_x = 0;
+  old_y = 0;
+    
 }
 
 // Clean up
