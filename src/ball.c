@@ -77,3 +77,40 @@ void tick_ball ()
         pulse_on_collision(usePulse);
     }
 } 
+
+
+
+void check_for_ball_collision (PLAYER player, bool headingRight)
+{
+  bool usePulse = true;
+  
+  int playerHeight = player.y + player.h;
+    
+  if((pos_y > player.y && pos_y - BALL_SIZE < playerHeight))
+  {
+    if (headingRight)
+    {
+      if ((pos_x + BALL_SIZE) > player.x) 
+      {
+          APP_LOG	(APP_LOG_LEVEL_DEBUG, "COLLSION WITH PLAYER 2");
+          APP_LOG	(APP_LOG_LEVEL_DEBUG, "checking for collision: %d, %d - player position:%d, %d ", pos_x, pos_y, player.y, playerHeight );
+          pos_x = player.x -BALL_SIZE;
+          delta_x = -VELOCITY;
+          pulse_on_collision(usePulse);
+      }
+    }
+    else
+    {
+      if (pos_x < player.x + player.w)
+      {
+          APP_LOG	(APP_LOG_LEVEL_DEBUG, "COLLSION WITH PLAYER 1");
+          APP_LOG	(APP_LOG_LEVEL_DEBUG, "checking for collision: %d, %d - player position:%d, %d ", pos_x, pos_y, player.y, playerHeight );
+          pos_x = player.x + player.w;
+          delta_x = VELOCITY;
+          pulse_on_collision(usePulse);
+      }
+    }
+  }
+} 
+
+

@@ -4,6 +4,7 @@
 
 typedef struct player 
 {
+  GRect rect;
     int x;
     int y;
     int w;

@@ -52,6 +52,11 @@ void playersLayer_update_callback(Layer *me, GContext* ctx) {
   
   draw_player2(ctx);
   tick_player2();
+  
+  
+  check_for_ball_collision (player2, true);
+  check_for_ball_collision (player1, false);
+  
   /*
   draw_player(ctx, player2);
   tick_player(player2);
