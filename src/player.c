@@ -7,8 +7,8 @@ int height;
   
 void init_players() 
 {
-  width = 10;
-  height = 30;
+  width = PADDLE_WIDTH;
+  height = PADDLE_LENGTH;
   
   player1.w = width;
   player1.h = height;

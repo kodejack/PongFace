@@ -10,8 +10,16 @@
 #include "court.h"
 #include "player.h"
 
+
 #include "constants.h"
 
+  /*
+  PBL_APP_INFO(MY_UUID,
+             "Pong Watch", "GTank",
+             1, 0,
+             RESOURCE_ID_IMAGE_MENU_ICON,
+             APP_INFO_STANDARD_APP);
+  */
 bool initialWipeFlag;
 
 // App-specific data
@@ -19,11 +27,25 @@ Window *window; // All apps must have at least one window
 Layer *courtLayer; // The courtLayer/background
 Layer *playersLayer; // The player markers
 TextLayer *timeLayer; // The clock/"scoreboard"
+TextLayer *scoreLayer; // The clock/"scoreboard"
+
+int player1Score;
+int player2Score;
+
+
 
 // This is called whenever the `courtLayer` layer needs to be redrawn.
 void courtLayer_update_callback(Layer *me, GContext* ctx) 
 {
   draw_court (me, ctx);
+}
+
+void update_score_text(int player1, int player2)
+{
+  static char scoreText[] = "00 00";
+  snprintf(scoreText, sizeof(scoreText), "%02d %02d", player1,player2);
+  text_layer_set_text(scoreLayer, scoreText);
+
 }
 
 // This is called whenever the `playersLayer` layer needs to be redrawn.
@@ -45,7 +67,23 @@ void playersLayer_update_callback(Layer *me, GContext* ctx) {
   
   
   draw_ball(ctx);
-  tick_ball();
+  int point = tick_ball();
+  
+  if(point == 1)
+  {
+     player1Score ++;
+  }
+  else if (point == 2)
+  {
+    player2Score++;
+  }
+
+  if(player1Score > 10 || player2Score > 10)
+  {
+    player1Score = 0;
+    player2Score = 0;
+  }
+  update_score_text(player1Score, player2Score);
   
   draw_player1(ctx);
   tick_player1();
@@ -63,10 +101,12 @@ void playersLayer_update_callback(Layer *me, GContext* ctx) {
   */
   
   // Reset timer
-  //timerHandle = app_timer_send_event(ctx, time_duration, 1);
+  //timerHandle = app_timer_send_event(ctx, 100, 1);
   // Tell layer to redraw
   layer_mark_dirty(playersLayer);
 }
+
+
 
 
 void update_time_text() {
@@ -137,10 +177,21 @@ void init(void) {
   text_layer_set_background_color(timeLayer, GColorClear);
   text_layer_set_font(timeLayer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
   layer_add_child(window_layer, text_layer_get_layer(timeLayer));
-
+  
   tick_timer_service_subscribe(SECOND_UNIT, handle_second_tick);
 
   update_time_text();
+  
+  scoreLayer = text_layer_create(GRect(0, 110, 144 /* width */, 42 /* height */));
+  text_layer_set_text_alignment(scoreLayer, GTextAlignmentCenter);
+  text_layer_set_text_color(scoreLayer, COLOR_FOREGROUND);
+  text_layer_set_background_color(scoreLayer, GColorClear);
+  text_layer_set_font(scoreLayer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
+  layer_add_child(window_layer, text_layer_get_layer(scoreLayer));
+  
+  player1Score = 0;
+  player2Score = 0;
+  update_score_text(player1Score, player2Score);
   
   init_ball();
   init_players();
@@ -153,6 +204,8 @@ void deinit(void) {
   layer_destroy(courtLayer);
   layer_destroy(playersLayer);
   text_layer_destroy(timeLayer);
+  text_layer_destroy(scoreLayer);
+  
 }
 
 // The main event/run loop for our app

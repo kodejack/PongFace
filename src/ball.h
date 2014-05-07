@@ -6,7 +6,7 @@
 
 void init_ball();
 void draw_ball(GContext* ctx);
-void tick_ball();
+int tick_ball();
 
 void check_for_ball_collision (PLAYER player, bool headingRight);
 

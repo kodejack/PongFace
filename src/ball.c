@@ -39,7 +39,7 @@ void draw_ball(GContext* ctx)
     graphics_fill_circle(ctx, point, BALL_SIZE);
 }
   
-void tick_ball ()
+int tick_ball ()
 {
   bool usePulse = false;
   
@@ -49,18 +49,27 @@ void tick_ball ()
     pos_x = pos_x + delta_x;
     pos_y = pos_y + delta_y;
     
-    if (pos_x > MAX_X)
-    {
-        pos_x = MAX_X -BALL_SIZE;
-        delta_x = -VELOCITY;
-        pulse_on_collision(usePulse);
-    }
-    
     if (pos_x < MIN_X)
     {
-        pos_x = MIN_X + BALL_SIZE;
+        // A point to player 2 
+      
+        //pos_x = MIN_X + BALL_SIZE;
+        pos_x = 68 + rand() % BALL_SIZE;
+        pos_y = 80 + rand() % BALL_SIZE;
         delta_x = VELOCITY;
         pulse_on_collision(usePulse);
+        return 1;
+    }
+    
+    if (pos_x > MAX_X)
+    {
+        // A point to player 2 
+        //pos_x = MAX_X - BALL_SIZE;
+        pos_x = 68 + rand() % BALL_SIZE;
+        pos_y = 80 + rand() % BALL_SIZE;
+        delta_x = -VELOCITY;
+        pulse_on_collision(usePulse);
+        return 2;
     }
     
     if (pos_y > MAX_Y)
@@ -76,13 +85,15 @@ void tick_ball ()
         delta_y = VELOCITY;
         pulse_on_collision(usePulse);
     }
+  
+  return 0;
 } 
 
 
 
 void check_for_ball_collision (PLAYER player, bool headingRight)
 {
-  bool usePulse = true;
+  bool usePulse = false;
   
   int playerHeight = player.y + player.h;
     
