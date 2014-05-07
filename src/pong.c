@@ -82,6 +82,7 @@ void playersLayer_update_callback(Layer *me, GContext* ctx) {
   {
     player1Score = 0;
     player2Score = 0;
+    psleep(2000);
   }
   update_score_text(player1Score, player2Score);
   

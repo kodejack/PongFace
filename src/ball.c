@@ -52,9 +52,8 @@ int tick_ball ()
     if (pos_x < MIN_X)
     {
         // A point to player 2 
-      
         //pos_x = MIN_X + BALL_SIZE;
-        pos_x = 68 + rand() % BALL_SIZE;
+        pos_x = 30 + rand() % BALL_SIZE;
         pos_y = 80 + rand() % BALL_SIZE;
         delta_x = VELOCITY;
         pulse_on_collision(usePulse);
@@ -65,7 +64,7 @@ int tick_ball ()
     {
         // A point to player 2 
         //pos_x = MAX_X - BALL_SIZE;
-        pos_x = 68 + rand() % BALL_SIZE;
+        pos_x = 114 + rand() % BALL_SIZE;
         pos_y = 80 + rand() % BALL_SIZE;
         delta_x = -VELOCITY;
         pulse_on_collision(usePulse);
